@@ -11,6 +11,7 @@ export default class Main extends Component {
   constructor() {
     super();
     this.state = {
+      loading: false,
       repositoryError: false,
       repositoryInput: '',
       repositories: [],
@@ -20,6 +21,7 @@ export default class Main extends Component {
   handleAddRepository = async e => {
     e.preventDefault();
     const { repositoryInput: reposInput, repositories } = this.state;
+    this.setState({ loading: true });
     try {
       const { data: repository } = await api.get(`${reposInput}`);
       repository.lastCommit = moment(repository.pushed_at).fromNow();
@@ -30,11 +32,18 @@ export default class Main extends Component {
       });
     } catch (error) {
       this.setState({ repositoryError: true });
+    } finally {
+      this.setState({ loading: false });
     }
   };
 
   render() {
-    const { repositories, repositoryInput, repositoryError } = this.state;
+    const {
+      repositories,
+      repositoryInput,
+      repositoryError,
+      loading,
+    } = this.state;
     return (
       <Container>
         <img src={logo} alt="Github Compare" />
@@ -46,7 +55,9 @@ export default class Main extends Component {
             value={repositoryInput}
             onChange={e => this.setState({ repositoryInput: e.target.value })}
           />
-          <button type="submit">Ok</button>
+          <button type="submit">
+            {loading ? <i className="fa fa-spinner fa-pulse" /> : 'Ok'}
+          </button>
         </Form>
         <CompareList repositories={repositories} />
       </Container>
